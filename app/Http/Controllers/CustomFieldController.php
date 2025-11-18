@@ -8,17 +8,11 @@ use Illuminate\Support\Str;
 
 class CustomFieldController extends Controller
 {
-    /**
-     * Get all custom fields.
-     */
     public function index()
     {
         return CustomField::all();
     }
 
-    /**
-     * Store a new custom field.
-     */
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -28,7 +22,6 @@ class CustomFieldController extends Controller
 
         $validated['name'] = Str::slug($validated['label'], '_');
 
-        // Ensure the generated name is unique
         if (CustomField::where('name', $validated['name'])->exists()) {
             return response()->json(['message' => 'A field with a similar label already exists.'], 422);
         }
@@ -38,9 +31,6 @@ class CustomFieldController extends Controller
         return response()->json($field, 201);
     }
 
-    /**
-     * Delete a custom field.
-     */
     public function destroy(CustomField $customField)
     {
         $customField->delete();

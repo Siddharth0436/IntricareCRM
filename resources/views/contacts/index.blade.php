@@ -1,27 +1,24 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <meta charset="UTF-8">
     <title>Intricare CRM</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="/resources/css/style.css">
 </head>
 
 <body class="bg-light p-4">
     <div class="container">
         <h2 class="mb-4">Intricare CRM</h2>
 
-        <!-- ADD BUTTON -->
         <div class="d-flex justify-content-end">
             <button class="btn btn-primary mb-3" id="addContactBtn" data-bs-toggle="modal" data-bs-target="#contactModal">
                 Add Contact
             </button>
         </div>
 
-
-        <!-- FILTERS -->
         <div class="card p-3 mb-4">
             <div class="row g-3">
                 <div class="col-md-3">
@@ -44,29 +41,30 @@
             </div>
         </div>
 
-        <!-- TABLE -->
         <div class="card p-3">
-            <table class="table table-bordered text-center">
-                <thead>
-                    <tr>
-                        <th>Image</th>
-                        <th>Name</th>
-                        <th>Email</th>
-                        <th>Phone</th>
-                        {{-- Dynamically add headers for custom fields --}}
-                        @foreach($customFields as $field)
-                        <th>{{ $field->label }}</th>
-                        @endforeach
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="contactsTable"></tbody>
-            </table>
-            <div id="paginationLinks"></div>
+            <div class="table-responsive">
+                <table class="table table-bordered text-center">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            @foreach($customFields as $field)
+                            <th>{{ $field->label }}</th>
+                            @endforeach
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsTable"></tbody>
+                </table>
+            </div>
+            <div id="paginationLinks" class="d-flex justify-content-center mt-3"></div>
         </div>
     </div>
 
-    <!-- MODAL -->
+    <!-- Contact Modal -->
     <div class="modal fade" id="contactModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -74,29 +72,24 @@
                     <h5 class="modal-title" id="modalTitle">Add Contact</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-
                 <div class="modal-body">
                     <form id="contactForm" enctype="multipart/form-data">
                         <input type="hidden" name="contact_id" id="contact_id">
-
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label>Name</label>
+                                <label class="form-label">Name</label>
                                 <input type="text" name="name" id="name" class="form-control">
                             </div>
-
                             <div class="col-md-6">
-                                <label>Email</label>
+                                <label class="form-label">Email</label>
                                 <input type="email" name="email" id="email" class="form-control">
                             </div>
-
                             <div class="col-md-6">
-                                <label>Phone</label>
+                                <label class="form-label">Phone</label>
                                 <input type="text" name="phone" id="phone" class="form-control">
                             </div>
-
                             <div class="col-md-6">
-                                <label>Gender</label>
+                                <label class="form-label">Gender</label>
                                 <select name="gender" id="gender" class="form-select">
                                     <option value="">Select</option>
                                     <option value="male">Male</option>
@@ -104,36 +97,36 @@
                                     <option value="other">Other</option>
                                 </select>
                             </div>
-
                             <div class="col-md-6">
-                                <label>Profile Image</label>
+                                <label class="form-label">Profile Image</label>
                                 <input type="file" name="profile_image" id="profile_image" class="form-control">
                             </div>
-
                             <div class="col-md-6">
-                                <label>Additional File</label>
+                                <label class="form-label">Additional File</label>
                                 <input type="file" name="additional_file" id="additional_file" class="form-control">
                             </div>
 
-                            <h5 class="mt-3">Custom Fields</h5>
-                            <div class="d-flex justify-content-end mb-2">
-                                <button type="button" class="btn btn-sm btn-secondary" id="manageFieldsBtn">Manage Custom Fields</button>
-                            </div>
-                            <div id="customFieldsArea" class="row g-3 border-top pt-3">
-                                @foreach($customFields as $field)
-                                <div class="col-md-6">
-                                    <label>{{ $field->label }}</label>
-                                    <input type="text" class="form-control custom-field"
-                                        name="custom_fields[{{ $field->id }}]"
-                                        data-id="{{ $field->id }}">
+                            <div class="col-12">
+                                <h5 class="mt-3">Custom Fields</h5>
+                                <div class="d-flex justify-content-end mb-2">
+                                    <button type="button" class="btn btn-sm btn-secondary" id="manageFieldsBtn">
+                                        Manage Custom Fields
+                                    </button>
                                 </div>
-                                @endforeach
+                                <div id="customFieldsArea" class="row g-3 border-top pt-3">
+                                    @foreach($customFields as $field)
+                                    <div class="col-md-6">
+                                        <label class="form-label">{{ $field->label }}</label>
+                                        <input type="text" class="form-control custom-field"
+                                            name="custom_fields[{{ $field->id }}]"
+                                            data-id="{{ $field->id }}">
+                                    </div>
+                                    @endforeach
+                                </div>
                             </div>
-
                         </div>
                     </form>
                 </div>
-
                 <div class="modal-footer">
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button id="saveContactBtn" class="btn btn-primary">Save Contact</button>
@@ -142,7 +135,7 @@
         </div>
     </div>
 
-    <!-- CUSTOM FIELDS MANAGEMENT MODAL -->
+    <!-- Custom Fields Modal -->
     <div class="modal fade" id="customFieldsModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -151,11 +144,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Form to add new field -->
                     <h5>Add New Field</h5>
                     <form id="newCustomFieldForm" class="row g-2 align-items-end mb-4">
                         <div class="col">
-                            <label>Field Label</label>
+                            <label class="form-label">Field Label</label>
                             <input type="text" name="label" class="form-control" required>
                         </div>
                         <div class="col-auto">
@@ -163,11 +155,8 @@
                         </div>
                     </form>
 
-                    <!-- List of existing fields -->
                     <h5>Existing Fields</h5>
-                    <ul class="list-group" id="existingFieldsList">
-                        <!-- Fields will be loaded here by JS -->
-                    </ul>
+                    <ul class="list-group" id="existingFieldsList"></ul>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -176,7 +165,7 @@
         </div>
     </div>
 
-    <!-- MERGE FIELDS MANAGEMENT MODAL -->
+    <!-- Merge Modal -->
     <div class="modal fade" id="mergeModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -187,7 +176,6 @@
                 <div class="modal-body">
                     <p>Select the master contact (the primary record to keep):</p>
                     <div id="mergeCandidates"></div>
-
                     <hr>
                     <div id="mergePreviewArea" style="display:none;"></div>
                 </div>
@@ -199,6 +187,8 @@
             </div>
         </div>
     </div>
+
+    <!-- Merge Success Modal -->
     <div class="modal fade" id="mergeSuccessModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -206,8 +196,7 @@
                     <h5 class="modal-title">Merge Completed</h5>
                     <button class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body" id="mergeSuccessBody">
-                </div>
+                <div class="modal-body" id="mergeSuccessBody"></div>
                 <div class="modal-footer">
                     <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
                 </div>
@@ -217,229 +206,252 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Make custom fields available to JavaScript
-        const customFields = @json($customFields);
+        // App data
+        var fieldList = @json($customFields);
+        var mergeContactId = null;
+        var mergeModal = null;
+        var successModal = null;
 
-
-        function toast(type, message) {
-            alert(message);
+        // Helper functions
+        function showAlert(type, msg) {
+            alert(msg);
         }
 
-        function showValidationErrors(errors) {
-            $('#contactForm').find('.is-invalid').removeClass('is-invalid');
-            $('#contactForm').find('.invalid-feedback').remove();
+        function toggleSpinner(show) {
+            if (show) {
+                $('body').append('<div id="loadingOverlay" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);display:flex;align-items:center;justify-content:center;z-index:2000;"><div class="spinner-border"></div></div>');
+            } else {
+                $('#loadingOverlay').remove();
+            }
+        }
 
-            $.each(errors, function(field, msgs) {
-                let el = $('[name="' + field + '"]');
-                if (!el.length && field.startsWith("custom_fields.")) {
-                    let id = field.split(".")[1];
-                    el = $('[data-id="' + id + '"]');
+        function clearErrors() {
+            $('.is-invalid').removeClass('is-invalid');
+            $('.invalid-feedback').remove();
+        }
+
+        function showErrors(errorData) {
+            clearErrors();
+            
+            $.each(errorData, function(fieldName, messages) {
+                var inputField = $('[name="' + fieldName + '"]');
+                if (!inputField.length && fieldName.startsWith("custom_fields.")) {
+                    var fieldId = fieldName.split(".")[1];
+                    inputField = $('[data-id="' + fieldId + '"]');
                 }
-                if (el.length) {
-                    el.addClass('is-invalid');
-                    el.after('<div class="invalid-feedback">' + msgs.join('<br>') + '</div>');
+                if (inputField.length) {
+                    inputField.addClass('is-invalid');
+                    inputField.after('<div class="invalid-feedback">' + messages.join('<br>') + '</div>');
                 }
             });
         }
 
-        function setLoading(on) {
-            if (on) {
-                $('body').append(`<div id="spinnerOverlay"
-            style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(255,255,255,0.7);
-            display:flex;align-items:center;justify-content:center;z-index:2000;">
-            <div class="spinner-border"></div></div>`);
-            } else {
-                $('#spinnerOverlay').remove();
-            }
-        }
-
-        function resetModal() {
+        function resetForm() {
             $('#modalTitle').text('Add Contact');
             $('#contactForm')[0].reset();
             $('#contact_id').val('');
             $('#profilePreview').remove();
-            $('.is-invalid').removeClass('is-invalid');
-            $('.invalid-feedback').remove();
+            clearErrors();
             $('.custom-field').val('');
         }
 
-        $('#profile_image').change(function() {
-            const file = this.files[0];
-            if (!file) return;
+        function cleanupModals() {
+            $('.modal-backdrop').remove();
+            $('body').removeClass('modal-open');
+            $('.modal').removeClass('show').hide();
+        }
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (!$('#profilePreview').length) {
-                    $('#profile_image').after(`<img id="profilePreview" class="img-thumbnail mt-2"
-                style="max-width:120px;">`);
+        // Modal setup
+        function setupModals() {
+            mergeModal = new bootstrap.Modal(document.getElementById('mergeModal'));
+            successModal = new bootstrap.Modal(document.getElementById('mergeSuccessModal'));
+            
+            $('#contactModal').on('show.bs.modal', function(e) {
+                var trigger = e.relatedTarget;
+                if (trigger && trigger.id === 'addContactBtn') {
+                    resetForm();
                 }
-                $('#profilePreview').attr('src', e.target.result);
-            };
-            reader.readAsDataURL(file);
-        });
+            });
 
-        function loadContacts(url = "{{ url('/contacts') }}") {
-            setLoading(true);
+            $('#contactModal').on('hidden.bs.modal', function() {
+                cleanupModals();
+            });
+
+            $('#mergeModal').on('hidden.bs.modal', function() {
+                mergeContactId = null;
+                $('#mergePreviewArea').hide().html('');
+                $('#btnConfirmMerge').prop('disabled', true);
+                $('#mergeCandidates').html('');
+                cleanupModals();
+            });
+
+            $('#mergeSuccessModal').on('hidden.bs.modal', function() {
+                cleanupModals();
+            });
+
+            $(document).keyup(function(e) {
+                if (e.keyCode === 27) cleanupModals();
+            });
+        }
+
+        // Contact functions
+        function fetchContacts(url) {
+            if (!url) url = "{{ url('/contacts') }}";
+            
+            toggleSpinner(true);
+            
+            var searchData = {
+                name: $('#filterName').val(),
+                email: $('#filterEmail').val(),
+                gender: $('#filterGender').val()
+            };
+
             $.ajax({
                 url: url,
                 method: "GET",
-                data: {
-                    name: $('#filterName').val(),
-                    email: $('#filterEmail').val(),
-                    gender: $('#filterGender').val()
-                },
+                data: searchData,
                 success: function(res) {
-                    let rows = "";
-                    res.data.forEach(function(c) {
-                        // Handle profile image
-                        let imageUrl = c.profile_image ? `/storage/${c.profile_image}` : 'https://via.placeholder.com/50';
-                        let imageHtml = `<img src="${imageUrl}" class="img-thumbnail" style="width:50px; height:50px; object-fit:cover;">`;
-
-                        // Prepare custom field cells
-                        let customFieldCells = '';
-                        customFields.forEach(function(fieldSchema) {
-                            // Find the value for the current contact that matches the schema's field ID
-                            let valueObj = (c.custom_values || []).find(v => v.custom_field_id == fieldSchema.id);
-                            let value = valueObj ? valueObj.value : '';
-                            customFieldCells += `<td>${value}</td>`;
-                        });
-
-                        rows += `
-                    <tr>
-                        <td>${imageHtml}</td>
-                        <td>${c.name}</td>
-                        <td>${c.email ?? ""}</td>
-                        <td>${c.phone ?? ""}</td>
-                        ${customFieldCells}
-                        <td>
-                            <button class="btn btn-sm btn-info mergeBtn" data-id="${c.id}">Merge</button>
-                            <button class="btn btn-warning btn-sm editBtn" data-id="${c.id}">
-                                Edit
-                            </button>
-                            <button class="btn btn-sm btn-danger deleteBtn" data-id="${c.id}">Delete</button>
-                        </td>
-                    </tr>`;
-                    });
-                    $('#contactsTable').html(rows);
-
-                    $('#paginationLinks').html(res.links ?? "");
+                    fillContactsTable(res.data);
+                    setupPagination(res.links);
                 },
                 error: function() {
-                    toast('error', 'Failed to load contacts');
+                    showAlert('error', 'Could not load contacts');
                 },
                 complete: function() {
-                    setLoading(false);
+                    toggleSpinner(false);
                 }
             });
         }
 
-        // Delete button was missing from the dynamic row creation, adding it here.
-        $(document).on('click', '.deleteBtn', function() {
-            let id = $(this).data('id');
+        function fillContactsTable(contacts) {
+            var html = '';
+            
+            if (contacts.length === 0) {
+                html = '<tr><td colspan="' + (6 + fieldList.length) + '" class="text-center">No contacts found</td></tr>';
+            } else {
+                contacts.forEach(function(contact) {
+                    var imgSrc = contact.profile_image ? '/storage/' + contact.profile_image : 'https://via.placeholder.com/50';
+                    
+                    var customCells = '';
+                    fieldList.forEach(function(field) {
+                        var customVal = (contact.custom_values || []).find(function(v) {
+                            return v.custom_field_id == field.id;
+                        });
+                        customCells += '<td>' + (customVal ? customVal.value : '') + '</td>';
+                    });
 
-            // Using confirm for simplicity, but Swal.fire is better
-            if (!confirm('Are you sure you want to delete this contact?')) {
-                return;
+                    var statusHtml = contact.is_active === false ? 
+                        '<span class="badge bg-secondary">Merged</span>' : 
+                        '<span class="badge bg-success">Active</span>';
+
+                    var actionButtons = '';
+                    if (contact.is_active) {
+                        actionButtons = '<button class="btn btn-sm btn-info mergeBtn" data-id="' + contact.id + '">Merge</button> ' +
+                                      '<button class="btn btn-warning btn-sm editBtn" data-id="' + contact.id + '">Edit</button> ' +
+                                      '<button class="btn btn-sm btn-danger deleteBtn" data-id="' + contact.id + '">Delete</button>';
+                    } else {
+                        actionButtons = '<span class="text-muted">Merged</span>';
+                    }
+
+                    html += '<tr>' +
+                        '<td><img src="' + imgSrc + '" class="contact-image img-thumbnail"></td>' +
+                        '<td>' + contact.name + '</td>' +
+                        '<td>' + (contact.email || "") + '</td>' +
+                        '<td>' + (contact.phone || "") + '</td>' +
+                        customCells +
+                        '<td>' + statusHtml + '</td>' +
+                        '<td>' + actionButtons + '</td>' +
+                    '</tr>';
+                });
             }
+            
+            $('#contactsTable').html(html);
+        }
 
-            setLoading(true);
+        function setupPagination(links) {
+            $('#paginationLinks').html(links || '');
+        }
+
+        function removeContact(contactId) {
+            if (!confirm('Delete this contact?')) return;
+
+            toggleSpinner(true);
+            
             $.ajax({
-                url: `/contacts/${id}`,
-                method: 'POST', // Using POST with _method spoofing
+                url: '/contacts/' + contactId,
+                method: 'POST',
                 data: {
                     _method: 'DELETE',
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(res) {
-                    toast('success', res.message || 'Contact deleted successfully.');
-                    loadContacts(); // Refresh the list
+                    showAlert('success', res.message || 'Contact deleted');
+                    fetchContacts();
                 },
                 error: function() {
-                    toast('error', 'Failed to delete contact.');
+                    showAlert('error', 'Delete failed');
                 },
                 complete: function() {
-                    setLoading(false);
+                    toggleSpinner(false);
                 }
             });
-        });
+        }
 
-
-        loadContacts();
-
-        // Use Bootstrap's native events for modal management
-        $('#contactModal').on('show.bs.modal', function(event) {
-            // If the modal is triggered by the 'Add Contact' button, reset the form.
-            const button = event.relatedTarget;
-            if (button && button.id === 'addContactBtn') {
-                resetModal();
-            }
-        });
-
-
-        $(document).on('click', '#btnFilter', function() {
-            loadContacts();
-        });
-
-        $(document).on('click', '.editBtn', function() {
-            let id = $(this).data("id");
-
-            setLoading(true);
+        function loadContactForEdit(contactId) {
+            toggleSpinner(true);
+            
             $.ajax({
-                url: `/contacts/${id}`,
+                url: '/contacts/' + contactId,
                 method: "GET",
-                success: function(c) {
-                    // Clear previous validation errors and previews
-                    resetModal();
-                    $('#modalTitle').text('Edit Contact');
-                    $('#contact_id').val(c.id);
-                    $('#name').val(c.name);
-                    $('#email').val(c.email);
-                    $('#phone').val(c.phone);
-                    $('#gender').val(c.gender);
-
-                    // Populate custom fields
-                    $('.custom-field').each(function() {
-                        let fid = $(this).data('id');
-                        let found = c.custom_values.find(v => v.custom_field_id == fid);
-                        $(this).val(found ? found.value : "");
-                    });
-
-                    if (c.profile_image) {
-                        $('#profile_image').after(
-                            `<img id="profilePreview" class="img-thumbnail mt-2"
-                        style="max-width:120px;" src="/storage/${c.profile_image}">`
-                        );
-                    }
-
-                    // Show the modal
-                    const contactModal = document.getElementById('contactModal');
-                    bootstrap.Modal.getOrCreateInstance(contactModal).show();
+                success: function(contact) {
+                    resetForm();
+                    fillEditForm(contact);
+                    new bootstrap.Modal(document.getElementById('contactModal')).show();
                 },
                 error: function() {
-                    toast('error', 'Failed to load contact');
+                    showAlert('error', 'Could not load contact');
                 },
                 complete: function() {
-                    setLoading(false);
+                    toggleSpinner(false);
                 }
             });
-        });
+        }
 
+        function fillEditForm(contact) {
+            $('#modalTitle').text('Edit Contact');
+            $('#contact_id').val(contact.id);
+            $('#name').val(contact.name);
+            $('#email').val(contact.email);
+            $('#phone').val(contact.phone);
+            $('#gender').val(contact.gender);
 
-        /* ===================== SAVE CONTACT ===================== */
+            $('.custom-field').each(function() {
+                var fieldId = $(this).data('id');
+                var fieldValue = contact.custom_values.find(function(v) {
+                    return v.custom_field_id == fieldId;
+                });
+                $(this).val(fieldValue ? fieldValue.value : "");
+            });
 
-        $(document).on('click', '#saveContactBtn', function(e) {
-            e.preventDefault();
+            if (contact.profile_image) {
+                $('#profile_image').after('<img id="profilePreview" class="img-thumbnail mt-2" style="max-width:120px;" src="/storage/' + contact.profile_image + '">');
+            }
+        }
 
-            let id = $('#contact_id').val();
-            let url = id ? `/contacts/${id}` : `{{ route('contacts.store') }}`;
-            let formData = new FormData(document.getElementById('contactForm'));
+        function saveContactData() {
+            var contactId = $('#contact_id').val();
+            var formUrl = contactId ? '/contacts/' + contactId : '{{ route("contacts.store") }}';
+            var formData = new FormData(document.getElementById('contactForm'));
+            
+            if (contactId) {
+                formData.append('_method', 'PUT');
+            }
 
-            if (id) formData.append('_method', 'PUT');
-
-            setLoading(true);
-
+            toggleSpinner(true);
+            clearErrors();
+            
             $.ajax({
-                url: url,
+                url: formUrl,
                 method: "POST",
                 data: formData,
                 processData: false,
@@ -448,260 +460,410 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 },
                 success: function(res) {
-                    toast('success', res.message || "Saved!");
-                    // Correctly hide the modal instance
-                    const contactModal = document.getElementById('contactModal');
-                    const modalInstance = bootstrap.Modal.getInstance(contactModal);
-                    if (modalInstance) modalInstance.hide();
-                    loadContacts();
+                    showAlert('success', res.message || "Saved!");
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('contactModal'));
+                    if (modal) modal.hide();
+                    fetchContacts();
                 },
                 error: function(xhr) {
                     if (xhr.status === 422) {
-                        showValidationErrors(xhr.responseJSON.errors);
+                        showErrors(xhr.responseJSON.errors);
                     } else {
-                        toast('error', 'Failed to save contact');
+                        showAlert('error', 'Save failed');
                     }
                 },
                 complete: function() {
-                    setLoading(false);
+                    toggleSpinner(false);
                 }
             });
-        });
-
-        /* ===================== CUSTOM FIELD MANAGEMENT ===================== */
-
-        function getCustomFieldsModal() {
-            // Always get the latest instance to avoid backdrop issues
-            return bootstrap.Modal.getOrCreateInstance(document.getElementById('customFieldsModal'));
         }
 
-        // Open management modal
-        $('#manageFieldsBtn').click(function() {
-            setLoading(true);
+        // Custom fields functions
+        function openFieldManager() {
+            loadFieldsList();
+        }
+
+        function loadFieldsList() {
+            toggleSpinner(true);
+            
             $.ajax({
                 url: '/custom-fields',
                 method: 'GET',
                 success: function(fields) {
-                    let listHtml = '<li class="list-group-item">No custom fields yet.</li>';
-                    if (fields.length) {
-                        listHtml = fields.map(field => `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        ${field.label}
-                        <button class="btn btn-danger btn-sm delete-field-btn" data-id="${field.id}">Delete</button>
-                    </li>
-                `).join('');
-                    }
-                    $('#existingFieldsList').html(listHtml);
-                    getCustomFieldsModal().show();
+                    displayFields(fields);
+                    new bootstrap.Modal(document.getElementById('customFieldsModal')).show();
                 },
                 error: function() {
-                    toast('error', 'Could not load fields.');
+                    showAlert('error', 'Could not load fields');
                 },
                 complete: function() {
-                    setLoading(false);
+                    toggleSpinner(false);
                 }
             });
-        });
+        }
 
-        // Add a new custom field
-        $('#newCustomFieldForm').submit(function(e) {
-            e.preventDefault();
-            setLoading(true);
+        function displayFields(fields) {
+            var html = '';
+            
+            if (fields.length === 0) {
+                html = '<li class="list-group-item">No custom fields yet.</li>';
+            } else {
+                fields.forEach(function(field) {
+                    html += '<li class="list-group-item d-flex justify-content-between align-items-center" data-field-id="' + field.id + '">' +
+                        field.label +
+                        '<button class="btn btn-danger btn-sm delete-field-btn" data-id="' + field.id + '">Delete</button>' +
+                    '</li>';
+                });
+            }
+            
+            $('#existingFieldsList').html(html);
+        }
+
+        function createNewField() {
+            toggleSpinner(true);
+            
             $.ajax({
                 url: '/custom-fields',
                 method: 'POST',
                 data: {
-                    label: $(this).find('[name="label"]').val(),
-                    type: 'text', // Defaulting to text for simplicity
+                    label: $('#newCustomFieldForm [name="label"]').val(),
+                    type: 'text',
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(newField) {
-                    toast('success', 'Field added successfully!');
-
-                    // Dynamically add to the management list
-                    if ($('#existingFieldsList').find('.list-group-item-info').length) {
-                        $('#existingFieldsList').html(''); // Clear "No fields" message
-                    }
-                    $('#existingFieldsList').append(`
-                <li class="list-group-item d-flex justify-content-between align-items-center" data-field-id="${newField.id}">
-                    ${newField.label}
-                    <button class="btn btn-danger btn-sm delete-field-btn" data-id="${newField.id}">Delete</button>
-                </li>
-            `);
-
-                    // Dynamically add to the contact form
-                    $('#customFieldsArea').append(`
-                <div class="col-md-6" data-field-id="${newField.id}">
-                    <label>${newField.label}</label>
-                    <input type="text" class="form-control custom-field" name="custom_fields[${newField.id}]" data-id="${newField.id}">
-                </div>
-            `);
-
+                    showAlert('success', 'Field added!');
+                    fieldList.push(newField);
+                    addFieldToPage(newField);
                     $('#newCustomFieldForm')[0].reset();
-                    setLoading(false);
+                    toggleSpinner(false);
                 },
                 error: function(xhr) {
-                    toast('error', xhr.responseJSON?.message || 'Failed to add field.');
-                    setLoading(false);
+                    showAlert('error', xhr.responseJSON?.message || 'Failed to add field');
+                    toggleSpinner(false);
                 }
             });
-        });
+        }
 
-        // Delete a custom field
-        $(document).on('click', '.delete-field-btn', function() {
-            if (!confirm('Are you sure? Deleting this field will remove all associated data for all contacts.')) return;
+        function addFieldToPage(field) {
+            if ($('#existingFieldsList').find('.list-group-item-info').length) {
+                $('#existingFieldsList').html('');
+            }
+            
+            $('#existingFieldsList').append(
+                '<li class="list-group-item d-flex justify-content-between align-items-center" data-field-id="' + field.id + '">' +
+                    field.label +
+                    '<button class="btn btn-danger btn-sm delete-field-btn" data-id="' + field.id + '">Delete</button>' +
+                '</li>'
+            );
 
-            setLoading(true);
-            const fieldId = $(this).data('id');
+            $('#customFieldsArea').append(
+                '<div class="col-md-6" data-field-id="' + field.id + '">' +
+                    '<label class="form-label">' + field.label + '</label>' +
+                    '<input type="text" class="form-control custom-field" name="custom_fields[' + field.id + ']" data-id="' + field.id + '">' +
+                '</div>'
+            );
+        }
+
+        function deleteField(fieldId) {
+            if (!confirm('Are you sure? This will remove all data for this field.')) return;
+
+            toggleSpinner(true);
+            
             $.ajax({
-                url: `/custom-fields/${fieldId}`,
+                url: '/custom-fields/' + fieldId,
                 method: 'DELETE',
                 data: {
                     _token: '{{ csrf_token() }}'
                 },
                 success: function(res) {
-                    toast('success', res.message || 'Field deleted!');
-                    // Remove from both the management list and the contact form
-                    $(`[data-field-id="${fieldId}"]`).fadeOut(300, function() {
+                    showAlert('success', res.message || 'Field deleted!');
+                    fieldList = fieldList.filter(function(f) {
+                        return f.id != fieldId;
+                    });
+                    $('[data-field-id="' + fieldId + '"]').fadeOut(300, function() {
                         $(this).remove();
                     });
-                    setLoading(false);
+                    fetchContacts();
+                    toggleSpinner(false);
                 },
                 error: function() {
-                    toast('error', 'Failed to delete field.');
-                    setLoading(false);
+                    showAlert('error', 'Delete failed');
+                    toggleSpinner(false);
                 }
             });
-        });
-        let mergeSecondaryId = null;
+        }
 
-        $(document).on('click', '.mergeBtn', function() {
-            mergeSecondaryId = $(this).data('id');
-
-            // Open a small modal to select master contact:
-            // For simplicity, fetch a list of active contacts (excluding secondary)
-            $.get('/contacts', {
-                ajax_list: 1,
-                exclude: mergeSecondaryId
-            }, function(res) {
-                // res should be JSON of active contacts (implement route or use existing ajax listing)
-                // Build a radio list for selection inside modal and then show modal
-                // (I'll provide HTML/JS below)
-            });
-        });
-        // Open merge modal: get candidates
-        $(document).on('click', '.mergeBtn', function() {
-            mergeSecondaryId = $(this).data('id');
+        // Merge functions
+        function startMerge(secondaryId) {
+            mergeContactId = secondaryId;
             $('#mergePreviewArea').hide().html('');
             $('#btnConfirmMerge').prop('disabled', true);
 
-            $.get('/contacts', {
-                ajax_list: 1,
-                exclude: mergeSecondaryId
-            }, function(res) {
-                // expect res.data array like earlier loadContacts; build list
-                let html = '<div class="list-group">';
-                res.data.forEach(c => {
-                    html += `<label class="list-group-item">
-                        <input type="radio" name="master_id" value="${c.id}" /> ${c.name} (${c.email || ''})
-                     </label>`;
-                });
-                html += '</div>';
-                $('#mergeCandidates').html(html);
-                new bootstrap.Modal(document.getElementById('mergeModal')).show();
+            $.get('/contacts/merge/exclude/' + mergeContactId, function(contacts) {
+                showMergeContacts(contacts);
+                if (mergeModal) {
+                    mergeModal.show();
+                } else {
+                    new bootstrap.Modal(document.getElementById('mergeModal')).show();
+                }
             });
-        });
+        }
 
-        // Preview
-        $(document).on('click', '#btnPreviewMerge', function() {
-            let masterId = $('#mergeCandidates input[name="master_id"]:checked').val();
+        function showMergeContacts(contacts) {
+            var html = '<div class="list-group">';
+            
+            if (contacts.length === 0) {
+                html += '<div class="alert alert-warning">No other active contacts available for merging.</div>';
+            } else {
+                contacts.forEach(function(contact) {
+                    html += '<label class="list-group-item">' +
+                        '<input type="radio" name="master_id" value="' + contact.id + '" required />' +
+                        '<strong>' + contact.name + '</strong> ' + (contact.email ? '(' + contact.email + ')' : '') +
+                    '</label>';
+                });
+            }
+            
+            html += '</div>';
+            $('#mergeCandidates').html(html);
+        }
+
+        function showMergePreview() {
+            var masterId = $('#mergeCandidates input[name="master_id"]:checked').val();
             if (!masterId) return alert('Please select a master contact');
 
             $.post('{{ route("contacts.merge.preview") }}', {
                 master_id: masterId,
-                secondary_id: mergeSecondaryId,
+                secondary_id: mergeContactId,
                 _token: $('meta[name="csrf-token"]').attr('content')
             }, function(res) {
-                // show res.preview in friendly way
-                let html = '<h6>Emails to copy:</h6><ul>';
-                res.preview.emails.forEach(e => html += `<li>${e}</li>`);
-                html += '</ul><h6>Phones to copy:</h6><ul>';
-                res.preview.phones.forEach(p => html += `<li>${p}</li>`);
-                html += '</ul><h6>Custom fields:</h6><ul>';
-                res.preview.custom_fields.forEach(cf => {
-                    html += `<li>${cf.field_label} - ${cf.action} (${cf.secondary_value ?? ''})</li>`;
-                });
-                html += '</ul>';
-                $('#mergePreviewArea').html(html).show();
+                displayPreview(res.preview);
                 $('#btnConfirmMerge').prop('disabled', false);
             }).fail(function(xhr) {
-                alert('Preview failed');
+                alert('Preview failed: ' + (xhr.responseJSON?.message || 'Unknown error'));
             });
-        });
+        }
 
-        // Confirm perform merge
-        $(document).on('click', '#btnConfirmMerge', function() {
-            let masterId = $('#mergeCandidates input[name="master_id"]:checked').val();
-            $.post('{{ route("contacts.merge.perform") }}', {
-                master_id: masterId,
-                secondary_id: mergeSecondaryId,
-                _token: $('meta[name="csrf-token"]').attr('content')
-            }, function(res) {
-                showMergeSuccess(res.log);
-                loadContacts();
-                bootstrap.Modal.getInstance(document.getElementById('mergeModal')).hide();
-            }).fail(function(xhr) {
-                alert('Merge failed');
-            });
-        });
+        function displayPreview(preview) {
+            var html = '<div class="merge-preview">';
 
-        function showMergeSuccess(response) {
-            const merged = response.merged_details || []; // array of objects
-
-            let rows = '';
-
-            if (merged.length === 0) {
-                rows = `
-            <tr>
-                <td colspan="5" class="text-center">No fields were merged</td>
-            </tr>
-        `;
-            } else {
-                rows = merged
-                    .map(item => `
-                <tr>
-                    <td>${item.field}</td>
-                    <td>${item.master_value ?? '-'}</td>
-                    <td>${item.secondary_value ?? '-'}</td>
-                    <td>${item.final_value ?? '-'}</td>
-                    <td>${item.action}</td>
-                </tr>
-            `)
-                    .join('');
+            if (preview.main_fields && preview.main_fields.length > 0) {
+                html += '<h6>Main Fields:</h6><ul class="list-group mb-3">';
+                preview.main_fields.forEach(function(field) {
+                    var bgClass = field.action === 'concatenate' ? 'list-group-item-warning' : 'list-group-item-success';
+                    html += '<li class="list-group-item ' + bgClass + '">' +
+                        '<strong>' + field.field_label + '</strong><br>' +
+                        'Master: ' + (field.master_value || 'Empty') + ' + Secondary: ' + field.secondary_value + '<br>' +
+                        '<small>→ Will become: ' + field.new_value + '</small>' +
+                    '</li>';
+                });
+                html += '</ul>';
             }
 
-            $("#mergeSuccessBody").html(`
-        <p class="mb-2"><strong>Contacts merged successfully!</strong></p>
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped">
-                <thead>
-                    <tr>
-                        <th>Field</th>
-                        <th>Master Value</th>
-                        <th>Secondary Value</th>
-                        <th>Final Value</th>
-                        <th>Action Taken</th>
-                    </tr>
-                </thead>
-                <tbody>${rows}</tbody>
-            </table>
-        </div>
-    `);
+            if (preview.emails && preview.emails.length > 0) {
+                html += '<h6>Email Changes:</h6><ul class="list-group mb-3">';
+                preview.emails.forEach(function(email) {
+                    if (email.action === 'add_new') {
+                        html += '<li class="list-group-item list-group-item-success">' +
+                            '<strong>New Email:</strong> ' + email.email + '<br>' +
+                            '<small>Action: Will be added as new email</small>' +
+                        '</li>';
+                    } else if (email.action === 'concatenate') {
+                        html += '<li class="list-group-item list-group-item-warning">' +
+                            '<strong>Email Concatenation:</strong><br>' +
+                            'Existing: ' + email.existing_email + ' + New: ' + email.email + '<br>' +
+                            '<small>→ Will become: ' + email.new_value + '</small>' +
+                        '</li>';
+                    }
+                });
+                html += '</ul>';
+            }
 
-            $("#mergeSuccessModal").modal("show");
+            if (preview.phones && preview.phones.length > 0) {
+                html += '<h6>Phone Changes:</h6><ul class="list-group mb-3">';
+                preview.phones.forEach(function(phone) {
+                    if (phone.action === 'add_new') {
+                        html += '<li class="list-group-item list-group-item-success">' +
+                            '<strong>New Phone:</strong> ' + phone.phone + '<br>' +
+                            '<small>Action: Will be added as new phone</small>' +
+                        '</li>';
+                    } else if (phone.action === 'concatenate') {
+                        html += '<li class="list-group-item list-group-item-warning">' +
+                            '<strong>Phone Concatenation:</strong><br>' +
+                            'Existing: ' + phone.existing_phone + ' + New: ' + phone.phone + '<br>' +
+                            '<small>→ Will become: ' + phone.new_value + '</small>' +
+                        '</li>';
+                    }
+                });
+                html += '</ul>';
+            }
+
+            if (preview.custom_fields && preview.custom_fields.length > 0) {
+                html += '<h6>Custom Field Changes:</h6><ul class="list-group">';
+                preview.custom_fields.forEach(function(field) {
+                    var bgClass = field.action === 'copy_to_master' ? 'list-group-item-success' :
+                                field.action === 'concatenate' ? 'list-group-item-warning' : 'list-group-item-info';
+
+                    if (field.action === 'copy_to_master') {
+                        html += '<li class="list-group-item ' + bgClass + '">' +
+                            '<strong>' + field.field_label + '</strong><br>' +
+                            'Master: Empty → Secondary: ' + field.secondary_value + '<br>' +
+                            '<small>Action: Will be copied to master</small>' +
+                        '</li>';
+                    } else if (field.action === 'concatenate') {
+                        html += '<li class="list-group-item ' + bgClass + '">' +
+                            '<strong>' + field.field_label + '</strong><br>' +
+                            'Master: ' + field.master_value + ' + Secondary: ' + field.secondary_value + '<br>' +
+                            '<small>→ Will become: ' + field.new_value + '</small>' +
+                        '</li>';
+                    }
+                });
+                html += '</ul>';
+            }
+
+            if ((!preview.main_fields || preview.main_fields.length === 0) && 
+                (!preview.emails || preview.emails.length === 0) && 
+                (!preview.phones || preview.phones.length === 0) && 
+                (!preview.custom_fields || preview.custom_fields.length === 0)) {
+                html += '<div class="alert alert-info">No new data to merge. Contacts are identical.</div>';
+            }
+
+            html += '</div>';
+            $('#mergePreviewArea').html(html).show();
         }
+
+        function doMerge() {
+            var masterId = $('#mergeCandidates input[name="master_id"]:checked').val();
+            toggleSpinner(true);
+
+            $.post('{{ route("contacts.merge.perform") }}', {
+                master_id: masterId,
+                secondary_id: mergeContactId,
+                _token: $('meta[name="csrf-token"]').attr('content')
+            }, function(res) {
+                toggleSpinner(false);
+                showMergeResult(res);
+                fetchContacts();
+                if (mergeModal) mergeModal.hide();
+            }).fail(function(xhr) {
+                toggleSpinner(false);
+                alert('Merge failed: ' + (xhr.responseJSON?.message || 'Unknown error'));
+            });
+        }
+
+        function showMergeResult(response) {
+            var merged = response.merged_details || [];
+            var rows = '';
+
+            if (merged.length === 0) {
+                rows = '<tr><td colspan="5" class="text-center">No fields were merged</td></tr>';
+            } else {
+                merged.forEach(function(item) {
+                    var fieldDisplay = item.field;
+                    if (item.field.startsWith('Custom Field')) {
+                        var fieldId = item.field.replace('Custom Field ', '');
+                        var customField = fieldList.find(function(cf) {
+                            return cf.id == fieldId;
+                        });
+                        fieldDisplay = customField ? customField.label : item.field;
+                    }
+
+                    rows += '<tr>' +
+                        '<td>' + fieldDisplay + '</td>' +
+                        '<td>' + (item.master_value || '-') + '</td>' +
+                        '<td>' + (item.secondary_value || '-') + '</td>' +
+                        '<td>' + (item.final_value || '-') + '</td>' +
+                        '<td>' + item.action + '</td>' +
+                    '</tr>';
+                });
+            }
+
+            $("#mergeSuccessBody").html(
+                '<p class="mb-2"><strong>Contacts merged successfully!</strong></p>' +
+                '<p>Master: <strong>' + response.master_name + '</strong> | Secondary: <strong>' + response.secondary_name + '</strong></p>' +
+                '<div class="table-responsive">' +
+                    '<table class="table table-bordered table-striped">' +
+                        '<thead>' +
+                            '<tr>' +
+                                '<th>Field</th>' +
+                                '<th>Master Value</th>' +
+                                '<th>Secondary Value</th>' +
+                                '<th>Final Value</th>' +
+                                '<th>Action Taken</th>' +
+                            '</tr>' +
+                        '</thead>' +
+                        '<tbody>' + rows + '</tbody>' +
+                    '</table>' +
+                '</div>'
+            );
+
+            if (successModal) {
+                successModal.show();
+            } else {
+                new bootstrap.Modal(document.getElementById('mergeSuccessModal')).show();
+            }
+        }
+
+        // Page setup
+        $(document).ready(function() {
+            setupModals();
+            fetchContacts();
+
+            $('#profile_image').change(function() {
+                var file = this.files[0];
+                if (!file) return;
+
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    if (!$('#profilePreview').length) {
+                        $('#profile_image').after('<img id="profilePreview" class="img-thumbnail mt-2" style="max-width:120px;">');
+                    }
+                    $('#profilePreview').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            $(document).on('click', '#btnFilter', function() {
+                fetchContacts();
+            });
+
+            $(document).on('click', '.editBtn', function() {
+                loadContactForEdit($(this).data('id'));
+            });
+
+            $(document).on('click', '.deleteBtn', function() {
+                removeContact($(this).data('id'));
+            });
+
+            $(document).on('click', '#saveContactBtn', function(e) {
+                e.preventDefault();
+                saveContactData();
+            });
+
+            $(document).on('click', '#manageFieldsBtn', function() {
+                openFieldManager();
+            });
+            
+            $(document).on('submit', '#newCustomFieldForm', function(e) {
+                e.preventDefault();
+                createNewField();
+            });
+            
+            $(document).on('click', '.delete-field-btn', function() {
+                deleteField($(this).data('id'));
+            });
+
+            $(document).on('click', '.mergeBtn', function() {
+                startMerge($(this).data('id'));
+            });
+            
+            $(document).on('click', '#btnPreviewMerge', function() {
+                showMergePreview();
+            });
+            
+            $(document).on('click', '#btnConfirmMerge', function() {
+                doMerge();
+            });
+        });
     </script>
-
 </body>
-
 </html>
