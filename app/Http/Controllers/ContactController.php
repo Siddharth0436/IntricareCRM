@@ -13,9 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class ContactController extends Controller
 {
-    /**
-     * Display contacts listing with search and filtering
-     */
     public function index(Request $request)
     {
         if ($request->ajax()) {
@@ -31,9 +28,6 @@ class ContactController extends Controller
         return view('contacts.index', compact('customFields'));
     }
 
-    /**
-     * Build the contact query with filters
-     */
     private function buildContactQuery(Request $request)
     {
         $query = Contact::query();
@@ -55,9 +49,6 @@ class ContactController extends Controller
         return $query;
     }
 
-    /**
-     * Apply custom field filters to query
-     */
     private function applyCustomFieldFilter($query, $request)
     {
         if ($request->filled('custom_field_name') && $request->filled('custom_value')) {
@@ -72,9 +63,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Create a new contact
-     */
     public function store(Request $request)
     {
         $validatedData = $this->validateContactData($request);
@@ -92,18 +80,12 @@ class ContactController extends Controller
         ]);
     }
 
-    /**
-     * Show contact details
-     */
     public function show($id)
     {
         $contact = Contact::with('customValues.field')->findOrFail($id);
         return response()->json($contact);
     }
 
-    /**
-     * Update existing contact
-     */
     public function update(Request $request, $id)
     {
         $contact = Contact::findOrFail($id);
@@ -121,9 +103,6 @@ class ContactController extends Controller
         ]);
     }
 
-    /**
-     * Delete contact and associated data
-     */
     public function destroy($id)
     {
         $contact = Contact::findOrFail($id);
@@ -138,9 +117,6 @@ class ContactController extends Controller
         ]);
     }
 
-    /**
-     * Validate contact input data
-     */
     private function validateContactData(Request $request)
     {
         return $request->validate([
@@ -153,9 +129,6 @@ class ContactController extends Controller
         ]);
     }
 
-    /**
-     * Handle file upload
-     */
     private function handleFileUpload(Request $request, $fieldName, $storageFolder)
     {
         if (!$request->hasFile($fieldName)) {
@@ -165,9 +138,6 @@ class ContactController extends Controller
         return $request->file($fieldName)->store($storageFolder, 'public');
     }
 
-    /**
-     * Remove file from storage
-     */
     private function removeFile($filePath)
     {
         if ($filePath && Storage::disk('public')->exists($filePath)) {
@@ -175,9 +145,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Update contact files if new ones are uploaded
-     */
     private function updateContactFiles($contact, $request, &$validatedData)
     {
         if ($request->hasFile('profile_image')) {
@@ -191,18 +158,12 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Remove all files associated with contact
-     */
     private function removeContactFiles($contact)
     {
         $this->removeFile($contact->profile_image);
         $this->removeFile($contact->additional_file);
     }
 
-    /**
-     * Save custom field values for contact
-     */
     private function saveCustomFields($contactId, $customFields)
     {
         if (!$customFields) {
@@ -218,9 +179,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Update custom field values for contact
-     */
     private function updateCustomFields($contactId, $customFields)
     {
         if (!$customFields) {
@@ -235,9 +193,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Start contact merge process
-     */
     public function initiateMerge(Request $request)
     {
         $request->validate([
@@ -256,9 +211,6 @@ class ContactController extends Controller
         ]);
     }
 
-    /**
-     * Preview what will happen during merge
-     */
     public function previewMerge(Request $request)
     {
         $request->validate([
@@ -276,9 +228,6 @@ class ContactController extends Controller
         return response()->json(['preview' => $changes]);
     }
 
-    /**
-     * Calculate changes for merge preview
-     */
     private function calculateMergeChanges($master, $secondary)
     {
         $changes = [
@@ -296,9 +245,6 @@ class ContactController extends Controller
         return $changes;
     }
 
-    /**
-     * Calculate changes for main contact fields
-     */
     private function calculateMainFieldChanges(&$changes, $master, $secondary)
     {
         // Name field
@@ -356,9 +302,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Calculate email changes for merge
-     */
     private function calculateEmailChanges(&$changes, $master, $secondary)
     {
         $masterEmails = $master->emails->pluck('email')
@@ -391,9 +334,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Calculate phone changes for merge
-     */
     private function calculatePhoneChanges(&$changes, $master, $secondary)
     {
         $masterPhones = $master->phones->pluck('phone')
@@ -426,9 +366,7 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Calculate custom field changes for merge
-     */
+    // Calculate custom field changes for merge
     private function calculateCustomFieldChanges(&$changes, $master, $secondary)
     {
         $masterCustom = $master->customValues->keyBy('custom_field_id');
@@ -458,9 +396,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Execute the contact merge
-     */
     public function performMerge(Request $request)
     {
         $request->validate([
@@ -497,9 +432,6 @@ class ContactController extends Controller
         ]);
     }
 
-    /**
-     * Execute all merge operations within transaction
-     */
     private function executeMergeOperations($master, $secondary)
     {
         $log = [
@@ -534,9 +466,6 @@ class ContactController extends Controller
         return $log;
     }
 
-    /**
-     * Merge main contact fields
-     */
     private function mergeMainFields($master, $secondary, &$log)
     {
         // Name field
@@ -592,9 +521,7 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Merge email records
-     */
+    //Merge email records
     private function mergeEmails($master, $secondary, &$log)
     {
         $masterEmails = $master->emails->pluck('email')
@@ -630,9 +557,7 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Merge phone records
-     */
+    //Merge phone records
     private function mergePhones($master, $secondary, &$log)
     {
         $masterPhones = $master->phones->pluck('phone')
@@ -668,9 +593,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Merge custom field values
-     */
     private function mergeCustomFields($master, $secondary, &$log)
     {
         $masterCustom = $master->customValues->keyBy('custom_field_id');
@@ -713,9 +635,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Merge file attachments
-     */
     private function mergeFiles($master, $secondary, &$log)
     {
         if (!$master->profile_image && $secondary->profile_image) {
@@ -735,9 +654,6 @@ class ContactController extends Controller
         }
     }
 
-    /**
-     * Format merge summary for response
-     */
     private function formatMergeSummary($log, $master, $secondary)
     {
         $summary = [];
@@ -833,9 +749,6 @@ class ContactController extends Controller
         return $summary;
     }
 
-    /**
-     * Get active contacts for merge (excluding specified contact)
-     */
     public function getContactsForMerge($excludeId)
     {
         $contacts = Contact::where('id', '!=', $excludeId)
