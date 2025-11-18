@@ -199,6 +199,21 @@
             </div>
         </div>
     </div>
+    <div class="modal fade" id="mergeSuccessModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Merge Completed</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="mergeSuccessBody">
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -297,7 +312,7 @@
                         <td>${c.phone ?? ""}</td>
                         ${customFieldCells}
                         <td>
-                        <button class="btn btn-sm btn-info mergeBtn" data-id="${c.id}">Merge</button>
+                            <button class="btn btn-sm btn-info mergeBtn" data-id="${c.id}">Merge</button>
                             <button class="btn btn-warning btn-sm editBtn" data-id="${c.id}">
                                 Edit
                             </button>
@@ -632,13 +647,59 @@
                 secondary_id: mergeSecondaryId,
                 _token: $('meta[name="csrf-token"]').attr('content')
             }, function(res) {
-                alert(res.message || 'Merged');
+                showMergeSuccess(res.log);
                 loadContacts();
                 bootstrap.Modal.getInstance(document.getElementById('mergeModal')).hide();
             }).fail(function(xhr) {
                 alert('Merge failed');
             });
         });
+
+        function showMergeSuccess(response) {
+            const merged = response.merged_details || []; // array of objects
+
+            let rows = '';
+
+            if (merged.length === 0) {
+                rows = `
+            <tr>
+                <td colspan="5" class="text-center">No fields were merged</td>
+            </tr>
+        `;
+            } else {
+                rows = merged
+                    .map(item => `
+                <tr>
+                    <td>${item.field}</td>
+                    <td>${item.master_value ?? '-'}</td>
+                    <td>${item.secondary_value ?? '-'}</td>
+                    <td>${item.final_value ?? '-'}</td>
+                    <td>${item.action}</td>
+                </tr>
+            `)
+                    .join('');
+            }
+
+            $("#mergeSuccessBody").html(`
+        <p class="mb-2"><strong>Contacts merged successfully!</strong></p>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Field</th>
+                        <th>Master Value</th>
+                        <th>Secondary Value</th>
+                        <th>Final Value</th>
+                        <th>Action Taken</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+    `);
+
+            $("#mergeSuccessModal").modal("show");
+        }
     </script>
 
 </body>

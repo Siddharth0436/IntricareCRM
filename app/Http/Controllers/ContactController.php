@@ -229,7 +229,7 @@ class ContactController extends Controller
 
         // Phones
         $masterPhones = $master->phones->pluck('phone')->map(fn($v) => preg_replace('/\D/', '', $v))->all();
-       foreach ($secondary->phones as $p) { 
+        foreach ($secondary->phones as $p) {
             $normalized = preg_replace('/\D/', '', $p->phone);
             if (!in_array($normalized, $masterPhones)) {
                 $changes['phones'][] = $p->phone;
@@ -265,7 +265,6 @@ class ContactController extends Controller
         return response()->json(['preview' => $changes]);
     }
 
-
     public function performMerge(Request $request)
     {
         $request->validate([
@@ -276,76 +275,110 @@ class ContactController extends Controller
         $master = Contact::with('customValues', 'emails', 'phones')->findOrFail($request->master_id);
         $secondary = Contact::with('customValues', 'emails', 'phones')->findOrFail($request->secondary_id);
 
-        DB::transaction(function () use ($master, $secondary, $request) {
+        $log = []; // collect raw logs
+
+        DB::transaction(function () use (&$log, $master, $secondary, $request) {
+
             $log = [
                 'emails' => [],
                 'phones' => [],
                 'custom_fields' => [],
             ];
 
-            // 1) Emails: copy any secondary emails not in master
+            // -------------------------
+            // 1) EMAIL MERGE
+            // -------------------------
             $masterEmails = $master->emails->pluck('email')->map(fn($v) => strtolower($v))->toArray();
+
             foreach ($secondary->emails as $e) {
                 if (!in_array(strtolower($e->email), $masterEmails)) {
                     $master->emails()->create(['email' => $e->email, 'is_primary' => false]);
                     $log['emails'][] = $e->email;
+                } else {
+                    // Log that the email was a duplicate and was skipped
+                    $log['emails_skipped'][] = $e->email;
                 }
             }
 
-            // 2) Phones
+            // -------------------------
+            // 2) PHONE MERGE
+            // -------------------------
             $masterPhones = $master->phones->pluck('phone')->map(fn($v) => preg_replace('/\D/', '', $v))->toArray();
+
             foreach ($secondary->phones as $p) {
                 $norm = preg_replace('/\D/', '', $p->phone);
                 if (!in_array($norm, $masterPhones)) {
                     $master->phones()->create(['phone' => $p->phone, 'is_primary' => false]);
                     $log['phones'][] = $p->phone;
+                } else {
+                    // Log that the phone was a duplicate and was skipped
+                    $log['phones_skipped'][] = $p->phone;
                 }
             }
 
-            // 3) Custom fields: if master lacks value -> copy; if conflict -> keep master and log
+            // -------------------------
+            // 3) CUSTOM FIELDS MERGE
+            // -------------------------
             $masterCustom = $master->customValues->keyBy('custom_field_id');
+
             foreach ($secondary->customValues as $secVal) {
+
                 $fieldId = $secVal->custom_field_id;
                 $masterValRecord = $masterCustom->get($fieldId);
 
                 if (!$masterValRecord || $masterValRecord->value === null || $masterValRecord->value === '') {
-                    // copy
+
                     ContactCustomValue::create([
                         'contact_id' => $master->id,
                         'custom_field_id' => $fieldId,
                         'value' => $secVal->value,
                     ]);
+
                     $log['custom_fields'][] = [
                         'field_id' => $fieldId,
                         'action' => 'copied',
                         'value' => $secVal->value,
                     ];
                 } elseif ($masterValRecord->value != $secVal->value) {
-                    // conflict: keep master; log secondary
+
                     $log['custom_fields'][] = [
                         'field_id' => $fieldId,
                         'action' => 'conflict_kept_master',
                         'master_value' => $masterValRecord->value,
                         'secondary_value' => $secVal->value,
                     ];
+            } else {
+                // Log identical fields for a more complete report
+                $log['custom_fields'][] = [
+                    'field_id' => $fieldId,
+                    'action' => 'kept_master_identical',
+                    'value' => $secVal->value,
+                ];
                 }
             }
 
-            // 4) Optionally: merge profile image or additional file - we keep master's file and log secondary's paths
+            // -------------------------
+            // 4) FILES
+            // -------------------------
             if ($secondary->profile_image) {
                 $log['secondary_profile_image'] = $secondary->profile_image;
             }
+
             if ($secondary->additional_file) {
                 $log['secondary_additional_file'] = $secondary->additional_file;
             }
 
-            // 5) Mark secondary as inactive and set merged_to
+            // -------------------------
+            // 5) MARK SECONDARY AS MERGED
+            // -------------------------
             $secondary->update([
                 'is_active' => false,
                 'merged_to' => $master->id,
             ]);
 
-            // 6) Save merge log
+            // -------------------------
+            // 6) SAVE MERGE LOG
+            // -------------------------
             ContactMergeLog::create([
                 'master_contact_id' => $master->id,
                 'secondary_contact_id' => $secondary->id,
@@ -354,6 +387,59 @@ class ContactController extends Controller
             ]);
         });
 
-        return response()->json(['success' => true, 'message' => 'Merge completed']);
+        $mergedDetails = [];
+
+        // EMAILS
+        foreach ($log['emails'] as $email) {
+            $mergedDetails[] = [
+                'field' => 'Email',
+                'master_value' => null,
+                'secondary_value' => $email,
+                'final_value' => $email,
+                'action' => 'Copied from secondary'
+            ];
+        }
+
+        // PHONES
+        foreach ($log['phones'] as $phone) {
+            $mergedDetails[] = [
+                'field' => 'Phone',
+                'master_value' => null,
+                'secondary_value' => $phone,
+                'final_value' => $phone,
+                'action' => 'Copied from secondary'
+            ];
+        }
+
+        // Log skipped emails and phones for a complete report
+        foreach ($log['emails_skipped'] ?? [] as $email) {
+            $mergedDetails[] = ['field' => 'Email', 'master_value' => $email, 'secondary_value' => $email, 'final_value' => $email, 'action' => 'Kept Master (Identical)'];
+        }
+        foreach ($log['phones_skipped'] ?? [] as $phone) {
+            $mergedDetails[] = ['field' => 'Phone', 'master_value' => $phone, 'secondary_value' => $phone, 'final_value' => $phone, 'action' => 'Kept Master (Identical)'];
+        }
+
+        // CUSTOM FIELDS
+        foreach ($log['custom_fields'] as $cf) {
+
+            $mergedDetails[] = [
+                'field' => 'Custom Field ' . $cf['field_id'],
+                'master_value' => $cf['action'] === 'copied' ? null : ($cf['master_value'] ?? null),
+                'secondary_value' => $cf['value'] ?? $cf['secondary_value'] ?? null,
+                'final_value' => $cf['action'] === 'copied'
+                    ? ($cf['value'] ?? null)
+                    : ($cf['master_value'] ?? null),
+                'action' => str_replace('_', ' ', Str::title($cf['action']))
+            ];
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Merge completed successfully!',
+            'merged_details' => $mergedDetails,   // <-- 🔥 FRONTEND USES THIS
+            'master_name' => $master->name,
+            'secondary_name' => $secondary->name,
+            'log' => $log, // original raw log (optional)
+        ]);
     }
 }
