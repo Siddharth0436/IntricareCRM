@@ -209,6 +209,7 @@
         // App data
         var fieldList = @json($customFields);
         var mergeContactId = null;
+        var storageBaseUrl = "{{ Storage::url('') }}";
         var mergeModal = null;
         var successModal = null;
 
@@ -330,7 +331,7 @@
                 html = '<tr><td colspan="' + (6 + fieldList.length) + '" class="text-center">No contacts found</td></tr>';
             } else {
                 contacts.forEach(function(contact) {
-                    var imgSrc = contact.profile_image ? '/storage/' + contact.profile_image : 'https://via.placeholder.com/50';
+                    var imgSrc = contact.profile_image ? storageBaseUrl + contact.profile_image : 'https://via.placeholder.com/50';
                     
                     var customCells = '';
                     fieldList.forEach(function(field) {
@@ -434,7 +435,7 @@
             });
 
             if (contact.profile_image) {
-                $('#profile_image').after('<img id="profilePreview" class="img-thumbnail mt-2" style="max-width:120px;" src="/storage/' + contact.profile_image + '">');
+                $('#profile_image').after('<img id="profilePreview" class="img-thumbnail mt-2" style="max-width:120px;" src="' + storageBaseUrl + contact.profile_image + '">');
             }
         }
 
